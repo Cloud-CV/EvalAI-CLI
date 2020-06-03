@@ -88,6 +88,10 @@ venv/
 ENV/
 env3/
 
+# pipenv
+Pipfile
+Pipfile.lock
+
 # Spyder project settings
 .spyderproject
 .spyproject
