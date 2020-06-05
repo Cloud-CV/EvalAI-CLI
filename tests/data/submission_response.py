@@ -124,6 +124,29 @@ submission_result = """
 }
 """
 
+submission_result_with_stdout_and_stderr_file = """
+                {
+                    "challenge_phase": 7,
+                    "created_by": 4,
+                    "execution_time": "None",
+                    "id": 10,
+                    "input_file": "http://testserver/media/submission_files/submission_10/2224fb89-6828-\
+                    47f4-b170-1279290ad900.json",
+                    "is_public": false,
+                    "method_description": null,
+                    "method_name": null,
+                    "participant_team": 3,
+                    "participant_team_name": "Host_83644_Team",
+                    "project_url": null,
+                    "publication_url": null,
+                    "status": "submitted",
+                    "stderr_file": "http://testserver/media/submission_files/submission_10/stderr.txt",
+                    "stdout_file": "http://testserver/media/submission_files/submission_10/stdout.txt",
+                    "submission_result_file": "http://testserver/media/submission_files/submission_10/result.json",
+                    "submitted_at": "2018-06-08T09:24:09.866590Z",
+                    "when_made_public": null
+                }"""
+
 aws_credentials = """
 {
     "success": {

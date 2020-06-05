@@ -281,6 +281,23 @@ def display_submission_result(submission_id):
         )
 
 
+def display_submission_stdout(submission_id):
+    """
+    Function to display stdout file of a particular submission
+    """
+    try:
+        response = submission_details_request(submission_id).json()
+        echo(requests.get(response['stdout_file']).text)
+    except requests.exceptions.MissingSchema:
+        echo(
+            style(
+                "\nThe Submission does not have stdout file.",
+                bold=True,
+                fg="red",
+            )
+        )
+
+
 def convert_bytes_to(byte, to, bsize=1024):
     """
     Convert bytes to KB, MB, GB etc.
