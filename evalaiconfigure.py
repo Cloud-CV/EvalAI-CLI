@@ -6,16 +6,15 @@ from click import echo, style
 from evalai.utils.auth import get_user_auth_token_by_login
 from evalai.utils.config import AUTH_TOKEN_PATH, AUTH_TOKEN_DIR
 
-
 @click.group(invoke_without_command=True)
 @click.pass_context
 def login(ctx):
     """
-    Login to EvalAI and save token.
+    Add Authorisation Key and Host ID.
     """
-    username = click.prompt("username", type=str, hide_input=False)
-    password = click.prompt("Enter password", type=str, hide_input=True)
-    token = get_user_auth_token_by_login(username, password)
+    authkey = click.prompt("AUTHORISATION KEY", type=str, hide_input=False)
+    host = click.prompt("HOST ID", type=str, hide_input=False)
+    token = get_user_auth_token_by_login(authkey, host)
 
     if os.path.exists(AUTH_TOKEN_PATH):
         with open(str(AUTH_TOKEN_PATH), "w") as TokenFile:
@@ -32,4 +31,4 @@ def login(ctx):
             except (OSError, IOError) as e:
                 echo(e)
 
-    echo(style("\nLogged in successfully!", bold=True))
+    echo(style("\nEvalAI is Configured Successfully!", bold=True))
