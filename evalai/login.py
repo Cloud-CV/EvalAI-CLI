@@ -13,7 +13,7 @@ def login(ctx):
     """
     Login to EvalAI and save token.
     """
-    username = click.prompt("username", type=str, hide_input=False)
+    username = click.prompt("Enter username", type=str, hide_input=False)
     password = click.prompt("Enter password", type=str, hide_input=True)
     token = get_user_auth_token_by_login(username, password)
 
