@@ -282,6 +282,31 @@ def display_submission_result(submission_id):
         )
 
 
+def display_submission_stderr(submission_id):
+    """
+    Function to display stderr file of a particular submission
+    """
+    try:
+        response = submission_details_request(submission_id).json()
+        stderr_content = requests.get(response['stderr_file']).text
+        echo(
+            style(
+                "\nThe content of stderr file:",
+                bold=True,
+                fg="green",
+            )
+        )
+        echo(stderr_content)
+    except requests.exceptions.MissingSchema:
+        echo(
+            style(
+                "\nThe Submission does not have stderr file.",
+                bold=True,
+                fg="red",
+            )
+        )
+
+
 def convert_bytes_to(byte, to, bsize=1024):
     """
     Convert bytes to KB, MB, GB etc.

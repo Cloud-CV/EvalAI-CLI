@@ -103,6 +103,50 @@ class TestGetSubmissionDetails(BaseTestClass):
         assert response == expected
 
 
+class TestDisplaySubmissionStderr(BaseTestClass):
+    def setup(self):
+        self.submission_with_stderr = json.loads(submission_response.submission_result_with_stdout_and_stderr_file)
+        self.submission_without_stderr = json.loads(submission_response.submission_result)
+
+        url = "{}{}"
+        responses.add(
+            responses.GET,
+            url.format(API_HOST_URL, URLS.get_submission.value).format("10"),
+            json=self.submission_with_stderr,
+            status=200,
+        )
+
+        responses.add(
+            responses.GET,
+            self.submission_with_stderr["stderr_file"],
+            body="Test Submission Stderr File",
+            status=200,
+        )
+
+        responses.add(
+            responses.GET,
+            url.format(API_HOST_URL, URLS.get_submission.value).format("9"),
+            json=self.submission_without_stderr,
+            status=200,
+        )
+
+    @responses.activate
+    def test_display_submission_stderr(self):
+        expected = "The content of stderr file:\nTest Submission Stderr File"
+        runner = CliRunner()
+        result = runner.invoke(submission, ["10", "stderr"])
+        response = result.output.strip()
+        assert response == expected
+
+    @responses.activate
+    def test_display_submission_stderr_when_submission_does_not_have_stderr_file(self):
+        expected = "The Submission does not have stderr file."
+        runner = CliRunner()
+        result = runner.invoke(submission, ["9", "stderr"])
+        response = result.output.strip()
+        assert response == expected
+
+
 class TestMakeSubmission(BaseTestClass):
     def setup(self):
         self.submission = json.loads(submission_response.submission_result)
