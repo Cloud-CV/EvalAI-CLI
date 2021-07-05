@@ -5,6 +5,7 @@ import validators
 from click import echo, style
 
 from evalai.utils.config import AUTH_TOKEN_DIR, HOST_URL_FILE_PATH
+from evalai.utils.auth import get_host_url
 
 
 @click.group(invoke_without_command=True)
@@ -48,14 +49,8 @@ def host(set_host):
                 )
             )
         else:
-            with open(HOST_URL_FILE_PATH, "r") as fr:
-                try:
-                    data = fr.read()
-                    echo(
-                        style(
-                            "{} is the Host URL of EvalAI.".format(data),
-                            bold=True,
-                        )
-                    )
-                except (OSError, IOError) as e:
-                    echo(e)
+            echo(
+                style(
+                    "{} is the Host URL of EvalAI.".format(get_host_url())
+                )
+            )
