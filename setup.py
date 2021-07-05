@@ -39,7 +39,7 @@ tests_require = [
     "pytest==3.5.1",
     "pytest-cov==2.5.1",
     "pytest-env==0.6.2",
-    "responses==0.9.0",
+    "responses==0.12.1",
     "pre-commit==1.14.4",
 ]
 

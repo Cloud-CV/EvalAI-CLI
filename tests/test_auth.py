@@ -6,6 +6,7 @@ from beautifultable import BeautifulTable
 from click.testing import CliRunner
 from termcolor import colored
 
+from evalai.login import login
 from evalai.challenges import challenge, challenges
 from evalai.set_host import host
 from evalai.utils.urls import URLS
@@ -13,11 +14,12 @@ from evalai.utils.config import (
     API_HOST_URL,
     AUTH_TOKEN_DIR,
     AUTH_TOKEN_FILE_NAME,
+    AUTH_TOKEN_PATH,
     HOST_URL_FILE_PATH,
 )
 from evalai.utils.common import convert_UTC_date_to_local
 
-from tests.data import challenge_response
+from tests.data import challenge_response, auth_response
 from tests.base import BaseTestClass
 
 
@@ -219,3 +221,79 @@ class TestSetAndLoadHostURL(BaseTestClass):
         result = runner.invoke(challenges)
         response = result.output.strip()
         assert str(response) == self.output
+
+
+class TestLogin(BaseTestClass):
+    def setup(self):
+        url = "{}{}"
+
+        valid_login_response = json.loads(auth_response.valid_login_response)
+        valid_login_body = json.loads(auth_response.valid_login_body)
+
+        responses.add(
+            responses.POST,
+            url.format("https://eval.ai", URLS.login.value),
+            json=valid_login_response,
+            match=[
+                responses.urlencoded_params_matcher(valid_login_body)
+            ],
+            status=200
+        )
+
+        invalid_login_response = json.loads(auth_response.invalid_login_response)
+        invalid_login_body = json.loads(auth_response.invalid_login_body)
+        responses.add(
+            responses.POST,
+            url.format("https://eval.ai", URLS.login.value),
+            json=invalid_login_response,
+            match=[
+                responses.urlencoded_params_matcher(invalid_login_body)
+            ],
+            status=400
+        )
+
+        get_access_token_response = json.loads(auth_response.get_access_token_response)
+        get_access_token_headers = json.loads(auth_response.get_access_token_headers)
+        responses.add(
+            responses.GET,
+            url.format("https://eval.ai", URLS.get_access_token.value),
+            json=get_access_token_response,
+            headers=get_access_token_headers,
+            status=200
+        )
+
+    def teardown(self):
+        if os.path.exists(HOST_URL_FILE_PATH):
+            os.remove(HOST_URL_FILE_PATH)
+
+    @responses.activate
+    def test_login(self):
+        json.loads(auth_response.get_access_token_response)
+        expected = "\nLogged in successfully!"
+        runner = CliRunner()
+        result = runner.invoke(host, ["-sh", "https://eval.ai"])
+        result = runner.invoke(login, input="host\npassword")
+        response = result.output.strip()
+        assert expected in str(response)
+        assert os.path.exists(AUTH_TOKEN_PATH), "Auth Token is not set"
+        # Checking if the token is equal to what was set during login
+        with open(str(AUTH_TOKEN_PATH), "r") as TokenFile:
+            assert json.loads(TokenFile.read()) == json.loads(auth_response.get_access_token_response)
+
+    @responses.activate
+    def test_login_when_httperror(self):
+        expected = "\nCould not establish a connection to EvalAI. Please check the Host URL."
+        runner = CliRunner()
+        result = runner.invoke(host, ["-sh", "https://evalaiwrongurl.ai"])
+        result = runner.invoke(login, input="host\npassword")
+        response = result.output.strip()
+        assert expected in str(response)
+
+    @responses.activate
+    def test_login_when_wrong_credentials(self):
+        expected = "\nUnable to log in with provided credentials."
+        runner = CliRunner()
+        result = runner.invoke(host, ["-sh", "https://eval.ai"])
+        result = runner.invoke(login, input="notahost\nnotapassword")
+        response = result.output.strip()
+        assert expected in str(response)
