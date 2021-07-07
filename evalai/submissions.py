@@ -112,6 +112,15 @@ def push(image, phase, url, public, private):
         message = "\nError: Image not found. Please enter the correct image name and tag."
         notify_user(message, color="red")
         sys.exit(1)
+    except docker.errors.DockerException as e:
+        message = (
+            '''\nError: Docker client initialization error.\n
+                Check if docker is running on the machine and doesn't require root access.\n
+                Installing docker - https://docs.docker.com/install/ \n
+                Managing docker as non-root user - https://docs.docker.com/install/linux/linux-postinstall/#manage-docker-as-a-non-root-user '''
+        )
+        notify_user(message, color="red")
+        sys.exit(1)
 
     request_path = URLS.phase_details_using_slug.value
     request_path = request_path.format(phase)
