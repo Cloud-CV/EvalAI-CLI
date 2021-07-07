@@ -1,4 +1,5 @@
 import json
+import os
 import responses
 
 from click.testing import CliRunner
@@ -367,6 +368,44 @@ class TestHTTPErrorRequests(BaseTestClass):
         assert response == expected
 
 
+class TestCreateChallengeWhenZipFileDoesNotExist(BaseTestClass):
+    def setup(self):
+
+        response_data = """
+        {
+            "error": "The zip file contents cannot be extracted. Please check the format!"
+        }
+        """
+        error_data = json.loads(response_data)
+        url = "{}{}"
+        responses.add(
+            responses.POST,
+            url.format(API_HOST_URL, URLS.create_challenge.value).format("4"),
+            json=error_data,
+            status=406,
+        )
+
+    @responses.activate
+    def test_create_challenge_when_zip_file_does_not_exist(self):
+
+        expected = ("\nError: The zip file contents cannot be extracted. Please check the format!\n"
+                    "\nUse `evalai challenges` to fetch the active challenges.\n"
+                    "\nUse `evalai challenge CHALLENGE phases` to fetch the "
+                    "active phases.\n\n"
+                    )
+        runner = CliRunner()
+
+        with runner.isolated_filesystem():
+            with open("test_file.txt", "w") as f:
+                f.write("1 2 3 4 5 6")
+
+            result = runner.invoke(
+                challenges, ["create", "--file", "test_file.txt", "4"],
+            )
+
+            assert result.output == expected
+
+
 class TestSubmissionDetailsWhenObjectDoesNotExist(BaseTestClass):
     def setup(self):
 
@@ -687,6 +726,12 @@ class TestRequestForExceptions(BaseTestClass):
         # Challenge URLS
 
         responses.add(
+            responses.POST,
+            url.format(API_HOST_URL, URLS.create_challenge.value),
+            body=RequestException("..."),
+        )
+
+        responses.add(
             responses.GET,
             url.format(API_HOST_URL, URLS.challenge_list.value),
             body=RequestException("..."),
@@ -820,6 +865,14 @@ class TestRequestForExceptions(BaseTestClass):
             url.format(API_HOST_URL, URLS.leaderboard.value).format("1"),
             body=RequestException("..."),
         )
+
+    @responses.activate
+    def test_create_challenge_for_request_exception(self):
+        runner = CliRunner()
+        my_path = os.path.abspath(os.path.dirname(__file__))
+        file = os.path.join(my_path, "data")
+        result = runner.invoke(challenges, ["create", "--file", "{}/test_zip_file.zip".format(file), "4"])
+        assert result.exit_code == 1
 
     @responses.activate
     def test_display_challenge_list_for_request_exception(self):

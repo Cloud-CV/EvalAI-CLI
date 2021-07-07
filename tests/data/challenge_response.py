@@ -555,3 +555,9 @@ annotation_part_file_upload_to_s3 = """
     "ETag": "\\"30bb2b9819ff69e7891523af9ad66b49\\""
 }
 """
+
+create_challenge_result = """
+{
+    "success": "Challenge Challenge Title has been created successfully and sent for review to EvalAI Admin."
+}
+"""

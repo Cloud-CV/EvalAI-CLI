@@ -22,6 +22,57 @@ from evalai.utils.urls import URLS
 requests.packages.urllib3.disable_warnings()
 
 
+def create_challenge(file, team):
+    """
+    Function to create a challenge.
+    """
+    url = "{}{}".format(get_host_url(), URLS.create_challenge.value)
+    url = url.format(team)
+
+    headers = get_request_header()
+    file = {"zip_configuration": file}
+
+    try:
+        response = requests.post(url, headers=headers, files=file)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        if response.status_code in EVALAI_ERROR_CODES:
+            validate_token(response.json())
+            echo(
+                style(
+                    "\nError: {}\n"
+                    "\nUse `evalai challenges` to fetch the active challenges.\n"
+                    "\nUse `evalai challenge CHALLENGE phases` to fetch the "
+                    "active phases.\n".format(response.json()["error"]),
+                    fg="red",
+                    bold=True,
+                )
+            )
+        else:
+            echo(err)
+        sys.exit(1)
+    except requests.exceptions.RequestException as err:
+        echo(
+            style(
+                "\nCould not establish a connection to EvalAI."
+                " Please check the Host URL.\n",
+                bold=True,
+                fg="red",
+            )
+        )
+        sys.exit(1)
+    response = response.json()
+    echo(
+        style(
+            "\n{}\n".format(
+                response["success"]
+            ),
+            fg="green",
+            bold=True,
+        )
+    )
+
+
 def pretty_print_challenge_data(challenges):
     """
     Function to print the challenge data

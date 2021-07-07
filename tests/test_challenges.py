@@ -1,4 +1,5 @@
 import json
+import os
 import responses
 
 from beautifultable import BeautifulTable
@@ -1063,3 +1064,58 @@ class TestDisplaySubmissionWithoutSubmissionData(BaseTestClass):
         result = runner.invoke(challenge, ["two", "participate", "3"])
         response = result.output
         assert response == output
+
+
+class TestCreateChallenge(BaseTestClass):
+    def setup(self):
+        self.message = json.loads(challenge_response.create_challenge_result)
+
+        url = "{}{}"
+        responses.add(
+            responses.POST,
+            url.format(API_HOST_URL, URLS.create_challenge.value).format("4"),
+            json=self.message,
+            status=201,
+        )
+
+    @responses.activate
+    def test_create_challenge_when_file_is_not_valid(self):
+        expected = (
+            "Usage: challenges create [OPTIONS] TEAM\n"
+            '\nError: Invalid value for "--file": Could not open file: file: No such file or directory\n'
+        )
+        runner = CliRunner()
+        result = runner.invoke(
+            challenges, ["create", "--file", "file", "4"]
+        )
+        response = result.output
+        assert response == expected
+
+    @responses.activate
+    def test_create_challenge_when_file_and_id_are_valid(self):
+        expected = 'Challenge Challenge Title has been created successfully and sent for review to EvalAI Admin.'
+
+        runner = CliRunner()
+
+        my_path = os.path.abspath(os.path.dirname(__file__))
+        file = os.path.join(my_path, "data")
+
+        result = runner.invoke(
+            challenges, ["create", "--file", "{}/test_zip_file.zip".format(file), "4"]
+        )
+        assert result.output.strip() == expected
+
+    @responses.activate
+    def test_create_challenge_when_id_is_not_valid(self):
+        expected = ("Could not establish a connection to EvalAI."
+                    " Please check the Host URL.")
+
+        runner = CliRunner()
+
+        my_path = os.path.abspath(os.path.dirname(__file__))
+        file = os.path.join(my_path, "data")
+
+        result = runner.invoke(
+            challenges, ["create", "--file", "{}/test_zip_file.zip".format(file), "111"]
+        )
+        assert result.output.strip() == expected
