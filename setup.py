@@ -52,7 +52,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Cloud-CV",
     author_email="team@cloudcv.org",
-    url="https://github.com/Cloud-CV/evalai_cli ",
+    url="https://github.com/Cloud-CV/evalai-cli",
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: BSD License",
