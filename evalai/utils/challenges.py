@@ -22,6 +22,65 @@ from evalai.utils.urls import URLS
 requests.packages.urllib3.disable_warnings()
 
 
+def verify_config_file(file, team):
+    """
+    Function to verify a challenge config file.
+    """
+    url = "{}{}".format(get_host_url(), URLS.verify_challenge_config.value)
+    url = url.format(team)
+
+    headers = get_request_header()
+    file = {"zip_configuration": file}
+
+    try:
+        response = requests.post(url, headers=headers, files=file)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        if response.status_code in EVALAI_ERROR_CODES:
+            validate_token(response.json())
+            echo(
+                style(
+                    "\nError: {}.".format(response.json()["error"]),
+                    fg="red",
+                    bold=True,
+                )
+            )
+        else:
+            echo(err)
+        sys.exit(1)
+    except requests.exceptions.RequestException:
+        echo(
+            style(
+                "\nCould not establish a connection to EvalAI."
+                " Please check the Host URL.",
+                bold=True,
+                fg="red",
+            )
+        )
+        sys.exit(1)
+
+    response = response.json()
+    response = json.loads(response)
+    for results in response:
+        if results == "Success":
+            echo(
+                style(
+                    "\n{}".format(response["Success"]),
+                    fg="green",
+                    bold=True,
+                )
+            )
+        else:
+            for m in response[results]:
+                echo(
+                    style(
+                        "\n{}: {}".format(results, m),
+                        fg="red",
+                        bold=False,
+                    )
+                )
+
+
 def pretty_print_challenge_data(challenges):
     """
     Function to print the challenge data
